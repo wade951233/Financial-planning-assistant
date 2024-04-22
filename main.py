@@ -4,13 +4,20 @@ from ui_components import planning_widgets  # 引入創建小組件的函數
 from ui_components import recording_widgets  # 引入創建小組件的函數
 from finance_calculator import calculate_finances  # 引入財務計算函數
 #from recording_data import add_data
+import sqlite3
 
 class FinanceApp:
     def __init__(self, master):
 
+
         self.master = master
         self.master.title("財務規劃APP")  # 設置應用程式視窗標題
         self.notebook = ttk.Notebook(master)  # 創建一個筆記本小組件，用來管理多個頁面
+        #######測試####
+
+        self.entries = {}  # Initialize the entries dictionary
+        self.labels = {}   # Initialize the labels dictionary
+
 
         # 在筆記本中設立4個分頁
         self.planning_frame = ttk.Frame(self.notebook)  # 創建「資產規劃」的框架
@@ -31,6 +38,9 @@ class FinanceApp:
         self.notebook.add(self.reports_frame, text='報告')  # 將「報告」分頁添加到筆記本中
 
         self.notebook.pack(expand=1, fill="both")  # 放置筆記本並允許擴展和填充空間
+
+        # 更新 GUI 顯示
+        self.update_portfolio_tree()
 
     def perform_calculation(self):
         try:
@@ -78,16 +88,89 @@ class FinanceApp:
     # def close_page(self, frame):
     #     index = self.notebook.index(frame)  # 獲取欲關閉頁面的索引
     #     self.notebook.forget(index)  # 移除指定索引的頁面
+
+
+########資產紀錄頁面button函式############
+    def add_data(self):
+        # 從界面獲取數據
+        data = {name: self.entries[name].get() for name in self.entries}
+        data.update({name: self.labels[name].cget("text") for name in self.labels})  # 對於labels使用 cget("text") 獲取顯示的文本
+        print("data:", data)
+        # 連接到數據庫
+        conn = sqlite3.connect('finance_app.db')
+        c = conn.cursor()
+        
+        # 插入數據
+        c.execute('''
+            INSERT INTO assets (
+                month, taiwan_stocks, taiwan_stocks_percentage, us_stocks, us_stocks_percentage, 
+                cryptocurrency, cryptocurrency_percentage, savings, savings_percentage, total_assets
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data['Month'],
+            data['Taiwan Stocks'], data['Taiwan Stocks Percentage'],
+            data['US Stocks'], data['US Stocks Percentage'],
+            data['Cryptocurrency'], data['Cryptocurrency Percentage'],
+            data['Savings'], data['Savings Percentage'],
+            data['Total Assets']
+        ))
+        
+        conn.commit()  # 提交事務
+        conn.close()  # 關閉連接
+        
+        # # 更新 GUI 顯示
+        self.update_portfolio_tree()
+
+    def update_portfolio_tree(self):
+        """更新資產清單的顯示"""
+        self.portfolio_tree.delete(*self.portfolio_tree.get_children())  # 清除現有的樹狀視圖項目
+        conn = sqlite3.connect('finance_app.db')
+        c = conn.cursor()
+        c.execute('SELECT * FROM assets')
+        for row in c.fetchall():
+            self.portfolio_tree.insert('', 'end', text=row[0], values=row[1:])
+        conn.close()
+
+    def delete_data(self, id):
+        """刪除指定ID的資產記錄"""
+        conn = sqlite3.connect('finance_app.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM assets WHERE id=?', (id,))
+        conn.commit()
+        conn.close()
+        self.update_portfolio_tree()
+
+    def get_selected_id(self):
+        """獲取選中項目的ID"""
+        selected_item = self.portfolio_tree.selection()
+        if selected_item:
+            return self.portfolio_tree.item(selected_item[0])['text']
+        return None
+    
 ####################
-    def add_data():
 
-        print("")
+###########計算百分比和總資產############
+    def calculate_percentages_and_total(self):
+    
+        print("計算百分比和總資產")
+        try:
+            taiwan_stocks = float(self.entries["Taiwan Stocks"].get())
+            us_stocks = float(self.entries["US Stocks"].get())
+            cryptocurrency = float(self.entries["Cryptocurrency"].get())
+            savings = float(self.entries["Savings"].get())
 
-        return 0
+            total_assets = taiwan_stocks + us_stocks + cryptocurrency + savings
+            self.labels["Total Assets"].config(text=f"{total_assets:.0f}")  # Update label text correctly
 
+            if total_assets > 0:
+                self.labels["Taiwan Stocks Percentage"].config(text=f"{(taiwan_stocks / total_assets * 100):.0f}%")
+                self.labels["US Stocks Percentage"].config(text=f"{(us_stocks / total_assets * 100):.0f}%")
+                self.labels["Cryptocurrency Percentage"].config(text=f"{(cryptocurrency / total_assets * 100):.0f}%")
+                self.labels["Savings Percentage"].config(text=f"{(savings / total_assets * 100):.0f}%")
+        except ValueError:
+            print("請確保輸入的是有效的數字。")
 
 ####################
-
 def main():
     root = tk.Tk()
     app = FinanceApp(root)

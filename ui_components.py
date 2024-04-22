@@ -56,43 +56,50 @@ def recording_widgets(frame, app):
     #tk.Label(frame, text="這是一個新的頁面", font=('Arial', 16)).grid(row=0, column=0, columnspan=5, pady=20, padx=10, sticky='ew')
 
     recording_parameters = [
-        ("月份", "Month", 0),
-        ("台股", "Taiwan Stocks", 0),
-        ("台股佔比 (%)", "Taiwan Stocks Percentage", 0),
-        ("美股", "US Stocks", 0),
-        ("美股佔比 (%)", "US Stocks Percentage", 0),
-        ("虛擬貨幣", "Cryptocurrency", 55),
-        ("虛擬貨幣佔比 (%)", "Cryptocurrency Percentage", 0),
-        ("活存", "Savings", 0),
-        ("活存佔比 (%)", "Savings Percentage", 0),
-        ("總資產 ($)", "Total Assets", 0),
+        ("月份", "Month", 4, "entry"),
+        ("台股", "Taiwan Stocks", 124000, "entry"),
+        ("台股佔比 (%)", "Taiwan Stocks Percentage", 0, "label"),
+        ("美股", "US Stocks", 44100, "entry"),
+        ("美股佔比 (%)", "US Stocks Percentage", 0, "label"),
+        ("虛擬貨幣", "Cryptocurrency", 180000, "entry"),
+        ("虛擬貨幣佔比 (%)", "Cryptocurrency Percentage", 0, "label"),
+        ("活存", "Savings", 280000, "entry"),
+        ("活存佔比 (%)", "Savings Percentage", 0, "label"),
+        ("總資產 ($)", "Total Assets", 0, "label"),
     ]
 
-    # 初始化行數變量
     row = 1
-
-    # 遍歷參數列表，逐一處理每個參數項目
-    for label_text, name, default_value in recording_parameters :
-        # 創建標籤，顯示參數的中文名稱
+    for label_text, name, default_value, widget_type in recording_parameters:
         label = tk.Label(frame, text=label_text)
-        # 創建輸入框，用於輸入或顯示數據
-        entry = tk.Entry(frame)
-        # 在輸入框中插入預設值
-        entry.insert(0, default_value)
-        # 將標籤加到布局中，位於第 `row` 行，第一列，右對齊
         label.grid(row=row, column=0, padx=(10, 2), pady=2, sticky="e")
-        # 將輸入框加到布局中，位於第 `row` 行，第二列，左對齊
-        entry.grid(row=row, column=1, padx=(2, 10), pady=2, sticky="w")
-        # 將輸入框對象存儲到 app.entries 字典中，鍵為參數的英文名稱
-        app.entries[name] = entry
-        # 行數增加，為下一行準備
+        
+        if widget_type == "entry":
+            widget = tk.Entry(frame)
+            widget.insert(0, default_value)
+            widget.grid(row=row, column=1, padx=(2, 10), pady=2, sticky="w")
+            app.entries[name] = widget
+        elif widget_type == "label":
+            widget = tk.Label(frame, text=f"{default_value:.2f}")
+            widget.grid(row=row, column=1, padx=(2, 10), pady=2, sticky="w")
+            app.labels[name] = widget
+
         row += 1
 
     
     # Add a button to perform calculations or update data
-    # app.update_button = tk.Button(frame, text="紀錄資料", command=app.add_data)
+    
+
+
     app.update_button = tk.Button(frame, text="紀錄資料", command=app.add_data)
     app.update_button.grid(row=row, column=0, columnspan=2, pady=10, sticky="w")
+
+    app.calculate_button = tk.Button(frame, text="計算佔比和總資產", command=app.calculate_percentages_and_total)
+    app.calculate_button.grid(row=row, column=1, columnspan=2, pady=10, sticky="w")
+
+    app.delete_record_button = tk.Button(frame, text="刪除資料", command=lambda: app.delete_data(app.get_selected_id()))
+    app.delete_record_button.grid(row=row, column=2, pady=10, sticky="w")
+
+    
 
     # 配置 Treeview 控件，用於顯示各項資產數據
     columns = ("月份", "台股", "台股佔比 (%)", "美股", "美股佔比 (%)", "虛擬貨幣", "虛擬貨幣佔比 (%)", "活存", "活存佔比 (%)", "總資產 ($)")
