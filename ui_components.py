@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-
+############
+# 資產規劃頁面
+############
 def planning_widgets(frame, app):
     app.entries = {}
     parameters = [
@@ -47,11 +49,13 @@ def planning_widgets(frame, app):
     app.tree.heading("monthly_expense", text="未來預計支出/每月($)")
     app.tree.grid(row=row+1, column=0, columnspan=2, padx=5, pady=(2, 10), sticky="ew")  # 修正 padding 和對齊
    
-
+############   
+#   資產紀錄頁面  #
+############
 def recording_widgets(frame, app):
     #tk.Label(frame, text="這是一個新的頁面", font=('Arial', 16)).grid(row=0, column=0, columnspan=5, pady=20, padx=10, sticky='ew')
 
-    parameters1 = [
+    recording_parameters = [
         ("月份", "Month", 0),
         ("台股", "Taiwan Stocks", 0),
         ("台股佔比 (%)", "Taiwan Stocks Percentage", 0),
@@ -65,10 +69,10 @@ def recording_widgets(frame, app):
     ]
 
     # 初始化行數變量
-    row = 0
+    row = 1
 
     # 遍歷參數列表，逐一處理每個參數項目
-    for label_text, name, default_value in parameters1:
+    for label_text, name, default_value in recording_parameters :
         # 創建標籤，顯示參數的中文名稱
         label = tk.Label(frame, text=label_text)
         # 創建輸入框，用於輸入或顯示數據
@@ -85,6 +89,11 @@ def recording_widgets(frame, app):
         row += 1
 
     
+    # Add a button to perform calculations or update data
+    # app.update_button = tk.Button(frame, text="紀錄資料", command=app.add_data)
+    app.update_button = tk.Button(frame, text="紀錄資料", command=app.add_data)
+    app.update_button.grid(row=row, column=0, columnspan=2, pady=10, sticky="w")
+
     # 配置 Treeview 控件，用於顯示各項資產數據
     columns = ("月份", "台股", "台股佔比 (%)", "美股", "美股佔比 (%)", "虛擬貨幣", "虛擬貨幣佔比 (%)", "活存", "活存佔比 (%)", "總資產 ($)")
     app.portfolio_tree = ttk.Treeview(frame, columns=columns, height=8, padding=5)
@@ -93,11 +102,13 @@ def recording_widgets(frame, app):
     # 為 Treeview 的每一列設置標題和列寬等屬性
     for col in columns:
         # 設置列標題，將列名中的底線替換為空格，並設置文本對齊方式為左對齊
-        app.portfolio_tree.heading(col, text=col.replace("_", " "), anchor='w')
+        app.portfolio_tree.heading(col, text=col, anchor='w')
         # 設置列的寬度、最小寬度，並禁用伸縮
         app.portfolio_tree.column(col, width=80, minwidth=80, stretch=tk.NO)
 
-    # 將 Treeview 控件添加到布局中，占用從當前行開始的兩列，並設置外邊距和填充
+    
+    # 將 Treeview 控件添加到布局中，放置於按鈕下方
+    row += 1  # 增加 row 變數，以使 Treeview 在按鈕下方的新行開始
     app.portfolio_tree.grid(row=row, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
 
     # 設定框架的列配置，使第二列有彈性（權重為1），可以隨窗口大小調整而伸縮

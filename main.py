@@ -3,6 +3,7 @@ from tkinter import ttk
 from ui_components import planning_widgets  # 引入創建小組件的函數
 from ui_components import recording_widgets  # 引入創建小組件的函數
 from finance_calculator import calculate_finances  # 引入財務計算函數
+#from recording_data import add_data
 
 class FinanceApp:
     def __init__(self, master):
@@ -15,7 +16,6 @@ class FinanceApp:
         self.planning_frame = ttk.Frame(self.notebook)  # 創建「資產規劃」的框架
         self.notebook.add(self.planning_frame, text='資產規劃')  # 將「資產規劃」框架添加到筆記本中
         planning_widgets(self.planning_frame, self)  # 呼叫創建小組件的函數來設置界面
-
 
         self.recording_frame = ttk.Frame(self.notebook)  # 創建「資產紀錄」分頁的框架
         self.notebook.add(self.recording_frame, text='資產紀錄')  # 將「資產紀錄」分頁添加到筆記本中
@@ -60,7 +60,6 @@ class FinanceApp:
             self.tree.insert("", "end", text="錯誤", values=("請輸入有效的數值", ""))
 
 
-
     def update_tree(self, results, start_age):
         # 清空現有的樹狀視圖項目
         for item in self.tree.get_children():
@@ -80,11 +79,14 @@ class FinanceApp:
     #     index = self.notebook.index(frame)  # 獲取欲關閉頁面的索引
     #     self.notebook.forget(index)  # 移除指定索引的頁面
 ####################
+    def add_data():
+
+        print("")
+
+        return 0
 
 
 ####################
-
-
 
 def main():
     root = tk.Tk()
