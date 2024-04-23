@@ -3,21 +3,17 @@ from tkinter import ttk
 from ui_components import planning_widgets  # 引入創建小組件的函數
 from ui_components import recording_widgets  # 引入創建小組件的函數
 from finance_calculator import calculate_finances  # 引入財務計算函數
-#from recording_data import add_data
 import sqlite3
 
 class FinanceApp:
     def __init__(self, master):
-
-
         self.master = master
         self.master.title("財務規劃APP")  # 設置應用程式視窗標題
         self.notebook = ttk.Notebook(master)  # 創建一個筆記本小組件，用來管理多個頁面
-        #######測試####
-
-        self.entries = {}  # Initialize the entries dictionary
+        self.db_manager = DatabaseManager('finance_app.db')  # 創建資料庫管理對象
+   
+        # self.entries = {}  # Initialize the entries dictionary
         self.labels = {}   # Initialize the labels dictionary
-
 
         # 在筆記本中設立4個分頁
         self.planning_frame = ttk.Frame(self.notebook)  # 創建「資產規劃」的框架
@@ -26,7 +22,7 @@ class FinanceApp:
 
         self.recording_frame = ttk.Frame(self.notebook)  # 創建「資產紀錄」分頁的框架
         self.notebook.add(self.recording_frame, text='資產紀錄')  # 將「資產紀錄」分頁添加到筆記本中
-        recording_widgets(self.recording_frame, self)
+        recording_widgets(self.recording_frame, self, self.db_manager)  # 呼叫創建小組件的函數來設置界面
 
         self.expenses_frame = ttk.Frame(self.notebook)  # 創建「支出」分頁的框架
         self.notebook.add(self.expenses_frame, text='支出')  # 將「支出」分頁添加到筆記本中
@@ -40,7 +36,7 @@ class FinanceApp:
         self.notebook.pack(expand=1, fill="both")  # 放置筆記本並允許擴展和填充空間
 
         # 更新 GUI 顯示
-        self.update_portfolio_tree()
+        #self.update_portfolio_tree()
 
     def perform_calculation(self):
         try:
@@ -90,7 +86,17 @@ class FinanceApp:
     #     self.notebook.forget(index)  # 移除指定索引的頁面
 
 
-########資產紀錄頁面button函式############
+class DatabaseManager:
+    def __init__(self, db_name):
+        """ 初始化資料庫管理員類 """
+        self.db_name = db_name
+        self.entries = {}  # Initialize the entries dictionary
+        self.labels = {}  
+
+    def connect(self):
+        """ 建立並返回資料庫連接 """
+        return sqlite3.connect(self.db_name)
+
     def add_data(self):
         # 從界面獲取數據
         data = {name: self.entries[name].get() for name in self.entries}
@@ -121,15 +127,12 @@ class FinanceApp:
         # # 更新 GUI 顯示
         self.update_portfolio_tree()
 
-    def update_portfolio_tree(self):
-        """更新資產清單的顯示"""
-        self.portfolio_tree.delete(*self.portfolio_tree.get_children())  # 清除現有的樹狀視圖項目
-        conn = sqlite3.connect('finance_app.db')
-        c = conn.cursor()
-        c.execute('SELECT * FROM assets')
-        for row in c.fetchall():
-            self.portfolio_tree.insert('', 'end', text=row[0], values=row[1:])
-        conn.close()
+    def fetch_all_data(self):
+        """ 從資料庫獲取所有資產資料 """
+        with self.connect() as conn:
+            c = conn.cursor()
+            c.execute('SELECT * FROM assets')
+            return c.fetchall()
 
     def delete_data(self, id):
         """刪除指定ID的資產記錄"""
@@ -140,14 +143,22 @@ class FinanceApp:
         conn.close()
         self.update_portfolio_tree()
 
+    def update_portfolio_tree(self):
+        """更新資產清單的顯示"""
+        self.portfolio_tree.delete(*self.portfolio_tree.get_children())  # 清除現有的樹狀視圖項目
+        conn = sqlite3.connect('finance_app.db')
+        c = conn.cursor()
+        c.execute('SELECT * FROM assets')
+        for row in c.fetchall():
+            self.portfolio_tree.insert('', 'end', text=row[0], values=row[1:])
+        conn.close()
+
     def get_selected_id(self):
-        """獲取選中項目的ID"""
-        selected_item = self.portfolio_tree.selection()
-        if selected_item:
-            return self.portfolio_tree.item(selected_item[0])['text']
-        return None
-    
-####################
+            """獲取選中項目的ID"""
+            selected_item = self.portfolio_tree.selection()
+            if selected_item:
+                return self.portfolio_tree.item(selected_item[0])['text']
+            return None
 
 ###########計算百分比和總資產############
     def calculate_percentages_and_total(self):
@@ -174,7 +185,8 @@ class FinanceApp:
 def main():
     root = tk.Tk()
     app = FinanceApp(root)
-  
+    db = DatabaseManager('finance_app.db')
+    
     root.mainloop()
 
 if __name__ == "__main__":

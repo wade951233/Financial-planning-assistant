@@ -52,7 +52,7 @@ def planning_widgets(frame, app):
 ############   
 #   資產紀錄頁面  #
 ############
-def recording_widgets(frame, app):
+def recording_widgets(frame, app, db):
     #tk.Label(frame, text="這是一個新的頁面", font=('Arial', 16)).grid(row=0, column=0, columnspan=5, pady=20, padx=10, sticky='ew')
 
     recording_parameters = [
@@ -77,46 +77,41 @@ def recording_widgets(frame, app):
             widget = tk.Entry(frame)
             widget.insert(0, default_value)
             widget.grid(row=row, column=1, padx=(2, 10), pady=2, sticky="w")
-            app.entries[name] = widget
+            db.entries[name] = widget
         elif widget_type == "label":
             widget = tk.Label(frame, text=f"{default_value:.2f}")
             widget.grid(row=row, column=1, padx=(2, 10), pady=2, sticky="w")
-            app.labels[name] = widget
-
+            db.labels[name] = widget
+            
         row += 1
 
-    
-    # Add a button to perform calculations or update data
-    
 
-
-    app.update_button = tk.Button(frame, text="紀錄資料", command=app.add_data)
+    app.update_button = tk.Button(frame, text="紀錄資料", command=db.add_data)
     app.update_button.grid(row=row, column=0, columnspan=2, pady=10, sticky="w")
 
-    app.calculate_button = tk.Button(frame, text="計算佔比和總資產", command=app.calculate_percentages_and_total)
+    app.calculate_button = tk.Button(frame, text="計算佔比和總資產", command=db.calculate_percentages_and_total)
     app.calculate_button.grid(row=row, column=1, columnspan=2, pady=10, sticky="w")
 
-    app.delete_record_button = tk.Button(frame, text="刪除資料", command=lambda: app.delete_data(app.get_selected_id()))
+    app.delete_record_button = tk.Button(frame, text="刪除資料", command=lambda: db.delete_data(db.get_selected_id()))
     app.delete_record_button.grid(row=row, column=2, pady=10, sticky="w")
 
     
-
     # 配置 Treeview 控件，用於顯示各項資產數據
     columns = ("月份", "台股", "台股佔比 (%)", "美股", "美股佔比 (%)", "虛擬貨幣", "虛擬貨幣佔比 (%)", "活存", "活存佔比 (%)", "總資產 ($)")
-    app.portfolio_tree = ttk.Treeview(frame, columns=columns, height=8, padding=5)
-    app.portfolio_tree.heading("#0", text="資料 ID", anchor='w')
-    app.portfolio_tree.column("#0",width=80, minwidth=80, stretch=tk.NO)
+    db.portfolio_tree = ttk.Treeview(frame, columns=columns, height=8, padding=5)
+    db.portfolio_tree.heading("#0", text="資料 ID", anchor='w')
+    db.portfolio_tree.column("#0",width=80, minwidth=80, stretch=tk.NO)
     # 為 Treeview 的每一列設置標題和列寬等屬性
     for col in columns:
         # 設置列標題，將列名中的底線替換為空格，並設置文本對齊方式為左對齊
-        app.portfolio_tree.heading(col, text=col, anchor='w')
+        db.portfolio_tree.heading(col, text=col, anchor='w')
         # 設置列的寬度、最小寬度，並禁用伸縮
-        app.portfolio_tree.column(col, width=80, minwidth=80, stretch=tk.NO)
+        db.portfolio_tree.column(col, width=80, minwidth=80, stretch=tk.NO)
 
     
     # 將 Treeview 控件添加到布局中，放置於按鈕下方
     row += 1  # 增加 row 變數，以使 Treeview 在按鈕下方的新行開始
-    app.portfolio_tree.grid(row=row, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
+    db.portfolio_tree.grid(row=row, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
 
     # 設定框架的列配置，使第二列有彈性（權重為1），可以隨窗口大小調整而伸縮
     frame.grid_columnconfigure(0, weight=1)
