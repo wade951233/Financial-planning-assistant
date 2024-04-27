@@ -6,6 +6,7 @@ def init_db():
     c.execute('''
         CREATE TABLE IF NOT EXISTS assets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            year TEXT NOT NULL,
             month TEXT NOT NULL,
             taiwan_stocks REAL,
             taiwan_stocks_percentage REAL,
